@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import QApplication
 import auth as auth_module
 from api import ChatApi
 from ui import Panel
+from i18n import system_language, tr
 
 
 class FakeAuth(QObject):
@@ -68,6 +69,14 @@ class QuickPaneTests(unittest.TestCase):
 
         self.assertEqual(self.app.clipboard().text(), "A test answer")
         panel.close()
+
+    def test_language_follows_system_locale_and_defaults_to_english(self):
+        self.assertEqual(system_language("pt_BR"), "pt")
+        self.assertEqual(system_language("pt-PT"), "pt")
+        self.assertEqual(system_language("en_US"), "en")
+        self.assertEqual(system_language("fr_FR"), "en")
+        self.assertEqual(tr("Continuar com ChatGPT", "en"), "Continue with ChatGPT")
+        self.assertEqual(tr("Continuar com ChatGPT", "pt"), "Continuar com ChatGPT")
 
     def test_oauth_session_is_written_with_owner_only_permissions(self):
         with tempfile.TemporaryDirectory() as directory:

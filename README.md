@@ -24,6 +24,7 @@
 - Chat: OpenAI Responses API using Sign in with ChatGPT
 - Desktop target: Linux, designed for KDE/Wayland
 - Screenshot capture: KDE Spectacle
+- Interface languages: English by default; Portuguese is selected automatically when the operating system locale is Portuguese.
 
 ## Keyboard shortcuts
 

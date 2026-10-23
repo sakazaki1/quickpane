@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import QApplication, QFileDialog, QMenu, QSystemTrayIcon
 
 from api import ChatApi
 from auth import AuthManager
+from i18n import tr
 from ui import ASSETS, Panel
 
 
@@ -50,13 +51,13 @@ class CaptureBridge(QObject):
                     capture_output=True, text=True, timeout=120,
                 )
                 if result.returncode or not path.exists():
-                    raise RuntimeError("Captura cancelada ou indisponível. Use Ctrl+V para colar um print.")
+                    raise RuntimeError(tr("Captura cancelada ou indisponível. Use Ctrl+V para colar um print."))
                 image = QImage(str(path))
                 if image.isNull():
-                    raise RuntimeError("Não foi possível abrir o print capturado.")
+                    raise RuntimeError(tr("Não foi possível abrir o print capturado."))
                 self.captured.emit(image)
         except FileNotFoundError:
-            self.failed.emit("O Spectacle não está instalado. Cole um print com Ctrl+V.")
+            self.failed.emit(tr("O Spectacle não está instalado. Cole um print com Ctrl+V."))
         except Exception as exc:
             self.failed.emit(str(exc))
 
@@ -102,11 +103,11 @@ def main() -> int:
         server.newConnection.connect(receive)
 
     def attach():
-        path, _ = QFileDialog.getOpenFileName(panel, "Anexar print", str(Path.home()),
-                                              "Imagens (*.png *.jpg *.jpeg *.webp)")
+        path, _ = QFileDialog.getOpenFileName(panel, tr("Anexar print"), str(Path.home()),
+                                              tr("Imagens (*.png *.jpg *.jpeg *.webp)"))
         if path:
             image = QImage(path)
-            if image.isNull(): panel.show_error("Esta imagem não pôde ser aberta.")
+            if image.isNull(): panel.show_error(tr("Esta imagem não pôde ser aberta."))
             else: panel.set_image(image)
 
     def capture():
@@ -122,10 +123,10 @@ def main() -> int:
     tray = QSystemTrayIcon(app.windowIcon(), app)
     tray.setToolTip("QuickPane")
     menu = QMenu()
-    menu.addAction("Abrir ou ocultar", toggle)
-    menu.addAction("Capturar print", capture)
+    menu.addAction(tr("Abrir ou ocultar"), toggle)
+    menu.addAction(tr("Capturar print"), capture)
     menu.addSeparator()
-    menu.addAction("Sair", app.quit)
+    menu.addAction(tr("Sair"), app.quit)
     tray.setContextMenu(menu)
     tray.activated.connect(lambda reason: toggle() if reason == QSystemTrayIcon.ActivationReason.Trigger else None)
     if QSystemTrayIcon.isSystemTrayAvailable():

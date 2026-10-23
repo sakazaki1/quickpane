@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 
 from api import ChatApi
 from auth import AuthManager
+from i18n import tr
 
 
 ASSETS = Path(__file__).resolve().parent / "assets"
@@ -66,7 +67,7 @@ class GlyphButton(QPushButton):
         super().__init__()
         self.glyph = glyph
         self.glyph_color = QColor(color)
-        self.setToolTip(tooltip)
+        self.setToolTip(tr(tooltip))
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFixedSize(34, 34)
         self.setObjectName("glyphButton")
@@ -147,7 +148,7 @@ class Composer(QTextEdit):
 
     def __init__(self):
         super().__init__()
-        self.setPlaceholderText("Digite ou cole um print...")
+        self.setPlaceholderText(tr("Digite ou cole um print..."))
         self.setFixedHeight(58)
         self.setAcceptRichText(False)
         self.setObjectName("composer")
@@ -254,7 +255,7 @@ class Panel(QWidget):
         api.models_ready.connect(self.on_models)
         if auth.ready:
             self.account_label.setText(auth.email)
-            self.login_button.setText("Conta conectada")
+            self.login_button.setText(tr("Conta conectada"))
             api.fetch_models()
 
     def position_right(self):
@@ -262,7 +263,7 @@ class Panel(QWidget):
         self.move(screen.right() - self.width() - 18, screen.top() + max(24, (screen.height() - self.height()) // 2))
 
     def _label(self, text: str, name: str = "") -> QLabel:
-        label = QLabel(text)
+        label = QLabel(tr(text))
         label.setObjectName(name)
         label.setWordWrap(True)
         return label
@@ -296,9 +297,9 @@ class Panel(QWidget):
         title = self._label("Chat rápido", "title")
         title.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         header.addWidget(title, 1)
-        self.new_chat_button = QPushButton("+ Novo chat")
+        self.new_chat_button = QPushButton(tr("+ Novo chat"))
         self.new_chat_button.setObjectName("newChatButton")
-        self.new_chat_button.setToolTip("Nova conversa sem o contexto anterior · Ctrl+N")
+        self.new_chat_button.setToolTip(tr("Nova conversa sem o contexto anterior · Ctrl+N"))
         self.new_chat_button.clicked.connect(self.new_chat)
         header.addWidget(self.new_chat_button)
         size_button = GlyphButton("resize", "Expandir ou reduzir")
@@ -310,13 +311,13 @@ class Panel(QWidget):
 
         self.account_label = self._label("Seu painel de acesso rápido", "subtle")
         card_layout.addWidget(self.account_label)
-        self.login_button = QPushButton("Continuar com ChatGPT")
+        self.login_button = QPushButton(tr("Continuar com ChatGPT"))
         self.login_button.setObjectName("loginButton")
         self.login_button.clicked.connect(self.on_login)
         card_layout.addWidget(self.login_button)
 
         self.model_picker = QComboBox(); self.model_picker.setObjectName("modelPicker")
-        self.model_picker.addItem("Modelo · conecte sua conta")
+        self.model_picker.addItem(tr("Modelo · conecte sua conta"))
         self.model_picker.currentIndexChanged.connect(self.on_model_changed)
         card_layout.addWidget(self.model_picker)
 
@@ -342,15 +343,15 @@ class Panel(QWidget):
         card_layout.addWidget(self.status_card)
 
         actions = QHBoxLayout(); actions.setSpacing(7)
-        self.restore_button = QPushButton("↶  Último chat")
+        self.restore_button = QPushButton(tr("↶  Último chat"))
         self.restore_button.setObjectName("secondaryAction")
-        self.restore_button.setToolTip("Reabrir a conversa anterior desta sessão")
+        self.restore_button.setToolTip(tr("Reabrir a conversa anterior desta sessão"))
         self.restore_button.setEnabled(False)
         self.restore_button.clicked.connect(self.restore_last_chat)
         actions.addWidget(self.restore_button)
-        self.copy_button = QPushButton("⧉  Copiar resposta")
+        self.copy_button = QPushButton(tr("⧉  Copiar resposta"))
         self.copy_button.setObjectName("secondaryAction")
-        self.copy_button.setToolTip("Copiar a última resposta · Ctrl+Shift+C")
+        self.copy_button.setToolTip(tr("Copiar a última resposta · Ctrl+Shift+C"))
         self.copy_button.setEnabled(False)
         self.copy_button.clicked.connect(self.copy_answer)
         actions.addWidget(self.copy_button)
@@ -366,7 +367,7 @@ class Panel(QWidget):
         self.preview_frame.hide(); card_layout.addWidget(self.preview_frame)
 
         attach_row = QHBoxLayout(); attach_row.setSpacing(8)
-        self.capture_button = QPushButton("▣   Cole um print ou clique para capturar")
+        self.capture_button = QPushButton(tr("▣   Cole um print ou clique para capturar"))
         self.capture_button.setObjectName("captureBox")
         self.capture_button.clicked.connect(self.capture_requested.emit)
         attach_row.addWidget(self.capture_button)
@@ -445,12 +446,12 @@ class Panel(QWidget):
         """)
 
     def on_login(self):
-        self.login_button.setText("Aguardando autorização no navegador...")
+        self.login_button.setText(tr("Aguardando autorização no navegador..."))
         self.auth.sign_in()
 
     def on_connected(self, email: str):
         self.account_label.setText(email)
-        self.login_button.setText("Conta conectada")
+        self.login_button.setText(tr("Conta conectada"))
         self.set_status("Pronto", "Conta conectada", "#42d17d", False)
         self.api.fetch_models()
 
@@ -470,10 +471,11 @@ class Panel(QWidget):
         self.api.model = self.model_picker.currentData() or ""
 
     def set_status(self, title: str, detail: str, color: str, pulse: bool):
+        title, detail = tr(title), tr(detail)
         self.status_title.setText(title); self.status_detail.setText(detail)
         self.status_title.setStyleSheet(f"color: {color};")
         self.status_dot.set_state(color, pulse); self.rail_dot.set_state(color, pulse)
-        rail_label = {"Executando...": "Ativo", "Concluído": "Feito", "Erro": "Erro"}.get(title, "Pronto")
+        rail_label = tr({"Working...": "Ativo", "Completed": "Feito", "Error": "Erro"}.get(title, "Pronto"))
         self.rail_status.setText(rail_label)
         self.rail_status.setToolTip(f"{title}: {detail}")
         self.rail_status.setStyleSheet(f"color: {color};")
@@ -564,10 +566,11 @@ class Panel(QWidget):
         self.restore_button.setEnabled(self.last_chat is not None)
         self.copy_button.setEnabled(bool(self._latest_answer()))
         self.collapse_timer.stop()
+        message = tr(message)
         self.set_status("Erro", message, "#f47172", False)
-        self.login_button.setText("Continuar com ChatGPT" if not self.auth.ready else "Conta conectada")
+        self.login_button.setText(tr("Continuar com ChatGPT") if not self.auth.ready else tr("Conta conectada"))
         if self.reply_label and not self.reply_text:
-            error_text = f"Não foi possível concluir: {message}"
+            error_text = f"{tr('Não foi possível concluir: ')}{message}"
             self.reply_label.setText(error_text)
             if self.reply_index is not None:
                 self.current_messages[self.reply_index]["text"] = error_text
@@ -632,28 +635,28 @@ class Panel(QWidget):
         answer = self._latest_answer()
         if answer:
             QApplication.clipboard().setText(answer)
-            self.status_detail.setText("Resposta copiada")
+            self.status_detail.setText(tr("Resposta copiada"))
 
     def show_help(self, source: QWidget):
         menu = QMenu(self)
         menu.setStyleSheet("QMenu { background: #262b30; color: #f2f4f6; border: 1px solid #59616b; padding: 6px; } QMenu::item { padding: 7px 14px; } QMenu::item:selected { background: #4b5159; }")
-        menu.addSection("Ações")
-        menu.addAction("Novo chat   Ctrl+N", self.new_chat)
-        restore = menu.addAction("Reabrir último chat", self.restore_last_chat)
+        menu.addSection(tr("Ações"))
+        menu.addAction(tr("Novo chat   Ctrl+N"), self.new_chat)
+        restore = menu.addAction(tr("Reabrir último chat"), self.restore_last_chat)
         restore.setEnabled(self.last_chat is not None and not self.api.busy)
-        copy = menu.addAction("Copiar resposta   Ctrl+Shift+C", self.copy_answer)
+        copy = menu.addAction(tr("Copiar resposta   Ctrl+Shift+C"), self.copy_answer)
         copy.setEnabled(bool(self._latest_answer()))
-        idle_menu = menu.addMenu("Novo chat após inatividade")
+        idle_menu = menu.addMenu(tr("Novo chat após inatividade"))
         for minutes, label in ((5, "5 minutos"), (15, "15 minutos"), (30, "30 minutos"), (0, "Nunca")):
-            action = idle_menu.addAction(label)
+            action = idle_menu.addAction(tr(label))
             action.setCheckable(True)
             action.setChecked(self.idle_minutes == minutes)
             action.triggered.connect(lambda _checked=False, value=minutes: self.set_idle_minutes(value))
-        menu.addAction("Capturar área", self.capture_requested.emit)
-        menu.addAction("Anexar imagem", self.attach_requested.emit)
-        menu.addSection("Atalhos")
+        menu.addAction(tr("Capturar área"), self.capture_requested.emit)
+        menu.addAction(tr("Anexar imagem"), self.attach_requested.emit)
+        menu.addSection(tr("Atalhos"))
         for hint in ("Ctrl+V   Colar print", "Ctrl+Enter   Enviar", "Esc   Ocultar janela"):
-            item = menu.addAction(hint)
+            item = menu.addAction(tr(hint))
             item.setEnabled(False)
         menu.popup(source.mapToGlobal(QPoint(-205, -150)))
         self.help_menu = menu
